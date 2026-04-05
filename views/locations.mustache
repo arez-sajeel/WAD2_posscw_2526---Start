@@ -1,0 +1,36 @@
+{{> head}}
+{{> header}}
+
+<section class="wrap">
+  <p class="eyebrow">Where we teach</p>
+  <h1>Our Locations</h1>
+  <p class="lead">
+    Classes take place across our Edinburgh venues. Each space is fully
+    equipped with mats, blocks, and straps.
+  </p>
+
+  <div class="cards">
+    {{#locations}}
+    <article class="card">
+      <div class="card-copy">
+        <h2>{{name}}</h2>
+        <p>{{description}}</p>
+        <p class="muted">{{address}}</p>
+      </div>
+    </article>
+    {{/locations}}
+
+    {{^locations}}
+    <article class="card empty-state">
+      <h2>No locations listed yet</h2>
+      <p class="muted">Check back soon.</p>
+    </article>
+    {{/locations}}
+  </div>
+
+  <div class="actions section-actions">
+    <a class="btn" href="/courses">Browse courses</a>
+  </div>
+</section>
+
+{{> footer}}

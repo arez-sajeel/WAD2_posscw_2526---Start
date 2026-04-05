@@ -1,0 +1,52 @@
+
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  <div class="dashboard-header">
+    <h1>{{ title }}</h1>
+    <div class="actions page-actions">
+      <a href="/organiser/users" class="btn">Manage Users</a>
+      <a href="/organiser/courses/new" class="btn primary">+ New Course</a>
+    </div>
+  </div>
+
+  <div class="cards cards-dashboard">
+    {{#courses}}
+    <article class="card organiser-card">
+      <div class="card-body">
+        <div class="card-heading">
+          <h2>{{ title }}</h2>
+          <p class="status-pill {{ listingStatusClass }}">{{ listingStatus }}</p>
+        </div>
+        <p class="card-meta">
+          <span>{{ level }}</span>
+          <span>{{ type }}</span>
+          <span>{{ startDate }} &ndash; {{ endDate }}</span>
+        </p>
+        <p class="muted">{{ sessionsCount }} session(s)</p>
+      </div>
+      <div class="card-actions">
+        <a href="/organiser/courses/{{ id }}/sessions" class="btn">Sessions</a>
+        <a href="/organiser/courses/{{ id }}/edit" class="btn">Edit</a>
+        <form method="post" action="/organiser/courses/{{ id }}/delete"
+              onsubmit="return confirm('Permanently delete this course and all its sessions?')">
+          <button type="submit" class="btn danger">Delete</button>
+        </form>
+      </div>
+    </article>
+    {{/courses}}
+
+    {{^courses}}
+    <article class="card empty-state organiser-card">
+      <h2>No courses yet</h2>
+      <p class="muted">Create the first course to start taking bookings.</p>
+      <div class="card-actions">
+        <a href="/organiser/courses/new" class="btn primary">Create course</a>
+      </div>
+    </article>
+    {{/courses}}
+  </div>
+</div>
+
+{{> footer}}

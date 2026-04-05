@@ -2,50 +2,70 @@
 {{> head}}
 {{> header}}
 
-<article>
-  <h1>{{course.title}}</h1>
-  <p class="muted">
-    Level: {{course.level}} • Type: {{course.type}} {{#course.allowDropIn}}• Drop-in available{{/course.allowDropIn}}
-  </p>
-  <p>{{course.description}}</p>
-  <p class="muted">Dates: {{course.startDate}} – {{course.endDate}}</p>
+<article class="wrap course-detail">
+  <header class="course-detail__header">
+    <p class="eyebrow">Course details</p>
+    <h1>{{course.title}}</h1>
+    <p class="course-meta">
+      <span>Level: {{course.level}}</span>
+      <span>Type: {{course.type}}</span>
+      {{#course.allowDropIn}}<span>Drop-in available</span>{{/course.allowDropIn}}
+    </p>
+    <p class="course-description">{{course.description}}</p>
+    <p class="course-dates">Dates: {{course.startDate}} to {{course.endDate}}</p>
+    {{#course.hasLocation}}<p class="course-meta">Location: {{course.locationName}}</p>{{/course.hasLocation}}
+    {{#course.hasPrice}}<p class="course-meta">Price: £{{course.price}}</p>{{/course.hasPrice}}
+  </header>
 
-  <section>
-    <h2>Book the full course</h2>
-   <form action="/courses/{{course.id}}/book" method="post">  <!-- If you add CSRF later: <input type="hidden" name="_csrf" value="{{csrfToken}}"> -->
-      <input type="hidden" name="userId" value="{{user._id}}">
-      <button class="btn primary" type="submit">Book full course</button>
-    </form>
+  <section class="course-section" aria-labelledby="course-booking-heading">
+    <h2 id="course-booking-heading">Book this course</h2>
+    {{#user}}
+    <a class="btn primary" href="/courses/{{course.id}}/book">Book full course</a>
+    {{/user}}
+    {{^user}}
+    <p class="muted">You need to sign in before making a booking.</p>
+    <a class="btn primary" href="/auth/login">Log in to book</a>
+    {{/user}}
   </section>
 
-  <section>
-    <h2>Sessions</h2>
-    <table class="table">
-      <thead>
-        <tr><th>Start</th><th>End</th><th>Capacity</th><th>Booked</th><th>Remaining</th><th></th></tr>
-      </thead>
-      <tbody>
-        {{#sessions}}
-        <tr>
-          <td>{{start}}</td>
-          <td>{{end}}</td>
-          <td>{{capacity}}</td>
-          <td>{{booked}}</td>
-          <td>{{remaining}}</td>
-          <td>
-            {{#../course.allowDropIn}}
-            <form method="postook
-              <button class="btn" type="submit" {{#isFull}}disabled{{/isFull}}>Book this session</button>
-            </form>
-            {{/../course.allowDropIn}}
-            {{^../course.allowDropIn}}
-              <span class="muted">Drop-ins disabled</span>
-            {{/../course.allowDropIn}}
-          </td>
-        </tr>
-        {{/sessions}}
-      </tbody>
-    </table>
+  <section class="course-section" aria-labelledby="course-sessions-heading">
+    <h2 id="course-sessions-heading">Sessions</h2>
+    <div class="table-wrap table-wrap--stack">
+      <table class="table table-stack">
+        <caption>Scheduled sessions for {{course.title}}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Start</th>
+            <th scope="col">End</th>
+            <th scope="col">Capacity</th>
+            <th scope="col">Booked</th>
+            <th scope="col">Remaining</th>
+            {{#course.allowDropIn}}<th scope="col">Book</th>{{/course.allowDropIn}}
+          </tr>
+        </thead>
+        <tbody>
+          {{#sessions}}
+          <tr>
+            <td data-label="Start">{{start}}</td>
+            <td data-label="End">{{end}}</td>
+            <td data-label="Capacity">{{capacity}}</td>
+            <td data-label="Booked">{{booked}}</td>
+            <td data-label="Remaining">{{remaining}}</td>
+            {{#course.allowDropIn}}
+            <td data-label="Book">
+              {{#canBook}}
+              <a class="btn" href="/sessions/{{id}}/book">Book</a>
+              {{/canBook}}
+              {{^canBook}}
+              <span class="muted">Full</span>
+              {{/canBook}}
+            </td>
+            {{/course.allowDropIn}}
+          </tr>
+          {{/sessions}}
+        </tbody>
+      </table>
+    </div>
   </section>
 </article>
 

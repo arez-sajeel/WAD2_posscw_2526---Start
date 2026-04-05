@@ -1,46 +1,81 @@
+{{> head}}
+{{> header}}
 
-<select name="level">
-  <option value="" {{^filters.level}}selected{{/filters.level}}>Any</option>
-  <option value="beginner" {{#filters}}{{#level}} {{#isBeginner}}selected{{/isBeginner}} {{/level}}{{/filters}}>Beginner</option>
-</select>
+<div class="wrap">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Now booking</p>
+      <h1>Courses</h1>
+    </div>
+  </div>
 
- <label>
-      Search
-      <input type="search" name="q" value="{{filters.q}}" placeholder="Title or description" />
-    </label>
+  <section class="filters" aria-labelledby="course-filters-heading">
+    <h2 id="course-filters-heading" class="visually-hidden">Filter courses</h2>
+    <form method="get" action="/courses" class="filter-form">
+      <div class="field">
+        <label for="level">Level</label><br>
+        <select id="level" name="level">
+          <option value="" {{^filters.level}}selected{{/filters.level}}>Any</option>
+          <option value="beginner" {{#filters.levelBeginner}}selected{{/filters.levelBeginner}}>Beginner</option>
+          <option value="intermediate" {{#filters.levelIntermediate}}selected{{/filters.levelIntermediate}}>Intermediate</option>
+          <option value="advanced" {{#filters.levelAdvanced}}selected{{/filters.levelAdvanced}}>Advanced</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="q">Search</label><br>
+        <input id="q" type="search" name="q" value="{{filters.q}}" placeholder="Title or description" />
+      </div>
+      <div class="filter-actions actions align-end">
+        <button class="btn" type="submit">Apply</button>
+        <a class="btn" href="/courses">Reset</a>
+      </div>
+    </form>
+  </section>
 
-    <button class="btn" type="submit">Apply</button>
-    /coursesReset</a>
-  </form>
-</section>
+  <div class="cards cards-list">
+    {{#courses}}
+    <article class="card">
+      <div class="card-copy">
+        <h2><a href="/courses/{{id}}">{{title}}</a></h2>
+        <p class="card-meta">
+          <span>Level: {{level}}</span>
+          <span>Type: {{type}}</span>
+          {{#allowDropIn}}<span>Drop-in available</span>{{/allowDropIn}}
+        </p>
+        <p>{{description}}</p>
+        <p class="muted">Duration: {{duration}}</p>
+        <p class="muted">Dates: {{startDate}} – {{endDate}}</p>
+        <p class="muted">Time: {{time}}</p>
+        {{#locationName}}<p class="muted">Location: {{locationName}}</p>{{/locationName}}
+        {{#hasPrice}}<p class="muted">Price: £{{price}}</p>{{/hasPrice}}
+        <p class="muted">Next session: {{nextSession}}</p>
+        <p class="muted">Sessions: {{sessionsCount}}</p>
+      </div>
+      <div class="card-actions">
+        <a class="btn" href="/courses/{{id}}">View &amp; Book</a>
+      </div>
+    </article>
+    {{/courses}}
 
-<div class="cards">
-  {{#courses}}
-  <article class="card">
-    <h2>/courses/{{id}}{{title}}</a></h2>
-    <p class="muted">
-      Level: {{level}} • Type: {{type}} {{#allowDropIn}}• Drop-in OK{{/allowDropIn}}
-    </p>
-    <p>{{description}}</p>
-    <p class="muted">Dates: {{startDate}} – {{endDate}}</p>
-    <p class="muted">Next session: {{nextSession}} • Sessions: {{sessionsCount}}</p>
-    <p>/courses/{{id}}View &amp; Book</a></p>
-  </article>
-  {{/courses}}
+    {{^courses}}
+    <article class="card empty-state">
+      <h2>No courses match your filters</h2>
+      <p class="muted">Try changing the search or reset the filters to browse all available options.</p>
+    </article>
+    {{/courses}}
+  </div>
 
-  {{^courses}}
-    <p>No courses match your filters.</p>
-  {{/courses}}
+  {{#pagination.show}}
+  <nav class="pagination" aria-label="Course pagination">
+    {{#pagination.hasPrev}}
+      <a class="btn" href="{{pagination.prevLink}}">&#8592; Previous</a>
+    {{/pagination.hasPrev}}
+    <span class="muted">Page {{pagination.page}} of {{pagination.totalPages}}</span>
+    {{#pagination.hasNext}}
+      <a class="btn" href="{{pagination.nextLink}}">Next &#8594;</a>
+    {{/pagination.hasNext}}
+  </nav>
+  {{/pagination.show}}
 </div>
-<!-- 
-<nav class="pagination">
-  {{#pagination.hasPrev}}
-    {{pagination.prevLink}}← Previous</a>
-  {{/pagination.hasPrev}}
 
-  <span class="muted">Page {{pagination.page}} of {{pagination.totalPages}}</span>
-
-  {{#pagination.hasNext}}
-    {{pagination.nextLink}}Next →</a>
-  {{/pagination.hasNext}}
-</nav> -->
+{{> footer}}

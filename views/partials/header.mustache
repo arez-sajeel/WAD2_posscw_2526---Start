@@ -1,13 +1,33 @@
-<header class="site-header">
+<header class="site-header" data-mobile-nav>
   <div class="wrap">
-    🧘 Yoga Studio
-    <nav>
-      <a> hrefs</a>
-    </nav>
-    {{#user}}
-    <div class="user">
-      Signed in as <strong>{{ name }}</strong>
+    <div class="site-header__bar">
+      <a class="site-brand" href="/">Yoga Studio</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation-panel">
+        <span class="nav-toggle__label">Menu</span>
+        <span class="nav-toggle__icon" aria-hidden="true"></span>
+      </button>
     </div>
-    {{/user}}
+    <div class="site-header__panel" id="site-navigation-panel">
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a class="site-nav__link{{#nav.isHome}} is-active{{/nav.isHome}}" href="/"{{#nav.isHome}} aria-current="page"{{/nav.isHome}}>Home</a>
+        <a class="site-nav__link{{#nav.isCourses}} is-active{{/nav.isCourses}}" href="/courses"{{#nav.isCourses}} aria-current="page"{{/nav.isCourses}}>Courses</a>
+        <a class="site-nav__link{{#nav.isLocations}} is-active{{/nav.isLocations}}" href="/locations"{{#nav.isLocations}} aria-current="page"{{/nav.isLocations}}>Locations</a>
+        <a class="site-nav__link{{#nav.isAbout}} is-active{{/nav.isAbout}}" href="/organisation"{{#nav.isAbout}} aria-current="page"{{/nav.isAbout}}>About</a>
+        {{#user}}
+        {{#isOrganiser}}
+        <a class="site-nav__link{{#nav.isDashboard}} is-active{{/nav.isDashboard}}" href="/organiser"{{#nav.isDashboard}} aria-current="page"{{/nav.isDashboard}}>Dashboard</a>
+        {{/isOrganiser}}
+        <a class="site-nav__link" href="/auth/logout">Logout</a>
+        {{/user}}
+        {{^user}}
+        <a class="site-nav__link{{#nav.isLogin}} is-active{{/nav.isLogin}}" href="/auth/login"{{#nav.isLogin}} aria-current="page"{{/nav.isLogin}}>Login</a>
+        <a class="site-nav__link{{#nav.isRegister}} is-active{{/nav.isRegister}}" href="/auth/register"{{#nav.isRegister}} aria-current="page"{{/nav.isRegister}}>Register</a>
+        {{/user}}
+      </nav>
+      {{#user}}
+      <div class="user">Signed in as <strong>{{name}}</strong></div>
+      {{/user}}
+    </div>
   </div>
 </header>
+<main>

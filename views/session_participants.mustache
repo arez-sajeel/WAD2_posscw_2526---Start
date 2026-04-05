@@ -1,0 +1,40 @@
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  <div class="dashboard-header">
+    <h1>{{ title }}</h1>
+    <a href="/organiser/courses/{{ courseId }}/sessions" class="btn">Back to Sessions</a>
+  </div>
+
+  <p class="muted">Session: {{ sessionStart }} &ndash; {{ sessionEnd }}</p>
+  <p class="muted">Capacity: {{ capacity }} &bull; Booked: {{ booked }}</p>
+
+  <div class="table-wrap table-wrap--stack">
+    <table class="table table-stack">
+      <caption>Participants for this session</caption>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#participants}}
+        <tr>
+          <td data-label="#">{{index}}</td>
+          <td data-label="Name">{{name}}</td>
+          <td data-label="Email">{{email}}</td>
+        </tr>
+        {{/participants}}
+      </tbody>
+    </table>
+  </div>
+
+  {{^participants}}
+  <p class="muted">No participants yet.</p>
+  {{/participants}}
+</div>
+
+{{> footer}}

@@ -1,0 +1,47 @@
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  <div class="dashboard-header">
+    <h1>Sessions for: {{ courseName }}</h1>
+    <div class="actions page-actions">
+      <a href="/organiser/courses/{{ courseId }}/sessions/new" class="btn primary">+ Add Session</a>
+      <a href="/organiser" class="btn">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="session-list">
+    {{#sessions}}
+    <article class="card organiser-card session-card">
+      <div class="card-body">
+        <h2>{{ start }} &ndash; {{ end }}</h2>
+        <p class="card-meta">
+          <span>Capacity: {{ capacity }}</span>
+          <span>Booked: {{ booked }}</span>
+          <span>Remaining: {{ remaining }}</span>
+        </p>
+      </div>
+      <div class="card-actions">
+        <a href="/organiser/sessions/{{ id }}/participants" class="btn">Participants</a>
+        <a href="/organiser/sessions/{{ id }}/edit" class="btn">Edit</a>
+        <form method="post" action="/organiser/sessions/{{ id }}/delete"
+              onsubmit="return confirm('Delete this session and cancel its bookings?')">
+          <button type="submit" class="btn danger">Delete</button>
+        </form>
+      </div>
+    </article>
+    {{/sessions}}
+
+    {{^sessions}}
+    <article class="card empty-state session-card">
+      <h2>No sessions yet</h2>
+      <p class="muted">Add the first session to open this course for bookings.</p>
+      <div class="card-actions">
+        <a href="/organiser/courses/{{ courseId }}/sessions/new" class="btn primary">Add session</a>
+      </div>
+    </article>
+    {{/sessions}}
+  </div>
+</div>
+
+{{> footer}}

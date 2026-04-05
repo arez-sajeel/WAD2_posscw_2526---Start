@@ -17,6 +17,10 @@ describe("SSR view routes", () => {
     expect(res.headers["content-type"]).toMatch(/html/);
     // Page title from home.mustache (adjust if you changed it)
     expect(res.text).toMatch(/Courses|Upcoming Courses/i);
+    expect(res.text).toMatch(
+      /<a class="site-nav__link is-active" href="\/" aria-current="page">Home<\/a>/
+    );
+    expect(res.text).toMatch(/<a class="site-brand" href="\/">Yoga Studio<\/a>/);
   });
 
   test("GET /courses (list page) renders HTML and shows Test Course", async () => {

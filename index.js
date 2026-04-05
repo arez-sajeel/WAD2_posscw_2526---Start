@@ -68,18 +68,22 @@
 // index.js
 import express from "express";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import passport from "passport";
 import dotenv from "dotenv";
 import mustacheExpress from "mustache-express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// import authRoutes from './routes/auth.js';
+import "./config/passport.js";
+import authRoutes from "./routes/auth.js";
+import organiserRoutes from "./routes/organiser.js";
 import courseRoutes from "./routes/courses.js";
 import sessionRoutes from "./routes/sessions.js";
 import bookingRoutes from "./routes/bookings.js";
 import viewRoutes from "./routes/views.js";
-import { attachDemoUser } from "./middlewares/demoUser.js";
 import { initDb } from "./models/_db.js";
+import { attachTestUser } from "./middlewares/testAuth.js";
 
 dotenv.config();
 
@@ -101,23 +105,73 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Session
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "wad2-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, sameSite: "lax" },
+  })
+);
+
+// Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Keep API integration tests isolated from production auth/session setup.
+app.use(attachTestUser);
+
+const matchesPath = (pathname, target) =>
+  pathname === target || pathname.startsWith(`${target}/`);
+
+const buildNavState = (pathname) => ({
+  isHome: pathname === "/",
+  isCourses:
+    matchesPath(pathname, "/courses") ||
+    matchesPath(pathname, "/sessions") ||
+    matchesPath(pathname, "/bookings"),
+  isLocations: pathname === "/locations",
+  isAbout: pathname === "/organisation",
+  isDashboard: matchesPath(pathname, "/organiser"),
+  isLogin: pathname === "/auth/login",
+  isRegister: pathname === "/auth/register",
+});
+
+// Expose authenticated user and role flags to all Mustache templates
+app.use((req, res, next) => {
+  res.locals.year = new Date().getFullYear();
+  res.locals.nav = buildNavState(req.path);
+  res.locals.user = req.user || null;
+  if (req.user) {
+    res.locals.user = {
+      ...req.user,
+      isOrganiser: req.user.role === 'organiser',
+      isInstructor: req.user.role === 'instructor',
+      isStudent: req.user.role === 'student',
+    };
+  }
+  next();
+});
+
 // Static
 app.use("/static", express.static(path.join(__dirname, "public")));
-
-// Demo user
-app.use(attachDemoUser);
 
 // Health
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-// JSON API routes
-// app.use('/auth', authRoutes);
-app.use("/courses", courseRoutes);
-app.use("/sessions", sessionRoutes);
-app.use("/bookings", bookingRoutes);
+// Auth routes
+app.use("/auth", authRoutes);
+app.use("/organiser", organiserRoutes);
 
-// SSR view routes
+// SSR view routes (HTML pages) — mounted BEFORE the JSON API
+// so browser requests to /courses, /courses/:id etc. get HTML
 app.use("/", viewRoutes);
+
+// JSON API routes — namespaced under /api so they don't shadow HTML pages
+app.use("/api/courses", courseRoutes);
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // Errors
 export const not_found = (req, res) =>

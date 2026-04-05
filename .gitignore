@@ -1,1 +1,39 @@
-/node_modules
+node_modules/
+coverage/
+
+# OS clutter
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Dynamic database files
+db/*.db
+
+# Anti-ignore essential coursework source and package manifests
+!config/
+!config/**
+!controllers/
+!controllers/**
+!middlewares/
+!middlewares/**
+!views/
+!views/**
+!routes/
+!routes/**
+!models/
+!models/**
+!public/
+!public/**
+!seed/
+!seed/**
+!services/
+!services/**
+!tests/
+!tests/**
+!package.json
+!package-lock.json

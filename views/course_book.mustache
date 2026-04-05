@@ -1,14 +1,13 @@
-
 {{> head}}
 {{> header}}
 
-<article>
+<article class="wrap">
   <h1>Book: {{course.title}}</h1>
   <p class="muted">
-    Level: {{course.level}} • Type: {{course.type}} {{#course.allowDropIn}}• Drop-in available{{/course.allowDropIn}}
+    Level: {{course.level}} &bull; Type: {{course.type}} {{#course.allowDropIn}}&bull; Drop-in available{{/course.allowDropIn}}
   </p>
   <p>{{course.description}}</p>
-  <p class="muted">Dates: {{course.startDate}} – {{course.endDate}}</p>
+  <p class="muted">Dates: {{course.startDate}} &ndash; {{course.endDate}}</p>
 
   {{#errors}}
   <div class="alert error" role="alert" aria-live="assertive">
@@ -20,7 +19,7 @@
   </div>
   {{/errors}}
 
-  <form method="post" action="/   <!-- If you add CSRF later: <input type="hidden" name="_csrf" value="{{csrfToken}}"> -->
+  <form method="post" action="/courses/{{course.id}}/book">
     <input type="hidden" name="userId" value="{{user._id}}">
 
     <fieldset>
@@ -28,22 +27,34 @@
 
       <div class="field">
         <label for="name">Full name</label>
-        <input id="name" name="name" type="text" required value="{{user.name}}">
+        <input id="name" name="name" type="text" required value="{{values.name}}" {{#fieldErrors.name}}aria-describedby="name-error" aria-invalid="true"{{/fieldErrors.name}}>
+        {{#fieldErrors.name}}
+        <p id="name-error" class="field-error" role="alert">{{fieldErrors.name}}</p>
+        {{/fieldErrors.name}}
       </div>
 
       <div class="field">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" required value="{{user.email}}">
+        <input id="email" name="email" type="email" required value="{{values.email}}" {{#fieldErrors.email}}aria-describedby="email-error" aria-invalid="true"{{/fieldErrors.email}}>
+        {{#fieldErrors.email}}
+        <p id="email-error" class="field-error" role="alert">{{fieldErrors.email}}</p>
+        {{/fieldErrors.email}}
       </div>
 
       <div class="field">
         <label for="notes">Notes (injuries, preferences)</label>
-        <textarea id="notes" name="notes" rows="4" placeholder="Optional">{{notes}}</textarea>
+        <textarea id="notes" name="notes" rows="4" placeholder="Optional" {{#fieldErrors.notes}}aria-describedby="notes-error" aria-invalid="true"{{/fieldErrors.notes}}>{{values.notes}}</textarea>
+        {{#fieldErrors.notes}}
+        <p id="notes-error" class="field-error" role="alert">{{fieldErrors.notes}}</p>
+        {{/fieldErrors.notes}}
       </div>
 
       <div class="field checkbox">
-        <input id="consent" name="consent" type="checkbox" required>
-        <label for="consent">I agree to the studio’s booking terms &amp; health disclaimer.</label>
+        <input id="consent" name="consent" type="checkbox" required {{#values.consent}}checked{{/values.consent}} {{#fieldErrors.consent}}aria-describedby="consent-error" aria-invalid="true"{{/fieldErrors.consent}}>
+        <label for="consent">I agree to the studio's booking terms &amp; health disclaimer.</label>
+        {{#fieldErrors.consent}}
+        <p id="consent-error" class="field-error" role="alert">{{fieldErrors.consent}}</p>
+        {{/fieldErrors.consent}}
       </div>
     </fieldset>
 
@@ -59,7 +70,7 @@
 
     <div class="actions">
       <button class="btn primary" type="submit">Confirm Course Booking</button>
-      /courses/{{course.id}}Cancel</a>
+      <a href="/courses/{{course.id}}" class="btn">Cancel</a>
     </div>
   </form>
 </article>

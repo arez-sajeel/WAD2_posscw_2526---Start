@@ -1,26 +1,59 @@
-
 {{> head}}
 {{> header}}
-<h1>Upcoming Courses</h1>
 
-<div class="cards">
-  {{#courses}}
-  <article class="card">
-    <h2>/courses/{{title}}</a></h2>
-    <p class="muted">
-      Level: {{level}} • Type: {{type}} {{#allowDropIn}}• Drop-in OK{{/allowDropIn}}
-    </p>
-    <p>{{description}}</p>
-    <p class="muted">Dates: {{startDate}}  {{endDate}}</p>
-    <p class="muted">Next session: {{nextSession}} • Sessions: {{sessionsCount}}</p>
-    <p>/courses/View &amp; Book</a></p>
-  </article>
-  {{/courses}}
+<section class="wrap home-hero">
+  <p class="eyebrow">Weekly classes and special workshops</p>
+  <h1>Upcoming Courses</h1>
+  <p class="lead">
+    Explore the next yoga blocks and workshops, compare schedules at a glance,
+    and move straight to the course information you need.
+  </p>
+  <div class="actions">
+    <a class="btn primary" href="/courses">Browse all courses</a>
+  </div>
+</section>
 
-  {{^courses}}
-    <p>No courses available yet.</p>
-  {{/courses}}
-</div>
+<section class="wrap">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Now booking</p>
+      <h2>Featured courses</h2>
+    </div>
+  </div>
+
+  <div class="cards">
+    {{#courses}}
+    <article class="card">
+      <div class="card-copy">
+        <p class="eyebrow">{{level}}</p>
+        <h2>{{title}}</h2>
+        <p class="card-meta">
+          <span>{{type}}</span>
+          {{#allowDropIn}}<span>Drop-in available</span>{{/allowDropIn}}
+        </p>
+        <p>{{description}}</p>
+        <p class="muted">Duration: {{duration}}</p>
+        <p class="muted">Dates: {{startDate}} to {{endDate}}</p>
+        <p class="muted">Time: {{time}}</p>
+        {{#locationName}}<p class="muted">Location: {{locationName}}</p>{{/locationName}}
+        {{#hasPrice}}<p class="muted">Price: £{{price}}</p>{{/hasPrice}}
+        <p class="muted">Next session: {{nextSession}}</p>
+        <p class="muted">Sessions: {{sessionsCount}}</p>
+      </div>
+      <div class="card-actions">
+        <a class="btn primary" href="/courses/{{id}}">View details</a>
+        <a class="btn" href="/courses">See all courses</a>
+      </div>
+    </article>
+    {{/courses}}
+
+    {{^courses}}
+    <article class="card empty-state">
+      <h2>No courses available yet</h2>
+      <p class="muted">Check back soon for newly scheduled classes and workshops.</p>
+    </article>
+    {{/courses}}
+  </div>
+</section>
 
 {{> footer}}
-``

@@ -1,28 +1,34 @@
 // routes/courses.js
 import { Router } from "express";
-import { CourseModel } from "../models/courseModel.js";
-import { SessionModel } from "../models/sessionModel.js";
+import { body } from "express-validator";
+import {
+  listCourses,
+  createCourse,
+  getCourseById,
+  deleteCourse,
+} from "../controllers/coursesController.js";
+import { ensureRole } from "../middlewares/authGuard.js";
 
 const router = Router();
 
-// List courses
-router.get("/", async (req, res) => {
-  const courses = await CourseModel.list();
-  res.json({ courses });
-});
+const courseValidators = [
+  body('title').trim().notEmpty().withMessage('Title is required.')
+    .isLength({ max: 200 }).withMessage('Title must be under 200 characters.').escape(),
+  body('level').isIn(['beginner', 'intermediate', 'advanced'])
+    .withMessage('Level must be beginner, intermediate, or advanced.'),
+  body('type').isIn(['WEEKEND_WORKSHOP', 'WEEKLY_BLOCK'])
+    .withMessage('Type must be WEEKEND_WORKSHOP or WEEKLY_BLOCK.'),
+  body('description').optional({ checkFalsy: true }).trim()
+    .isLength({ max: 1000 }).withMessage('Description must be under 1000 characters.').escape(),
+  body('startDate').notEmpty().withMessage('Start date is required.')
+    .isISO8601().withMessage('Start date must be a valid date.'),
+  body('endDate').notEmpty().withMessage('End date is required.')
+    .isISO8601().withMessage('End date must be a valid date.'),
+];
 
-// Create course
-router.post("/", async (req, res) => {
-  const course = await CourseModel.create(req.body);
-  res.status(201).json({ course });
-});
-
-// Get course + sessions
-router.get("/:id", async (req, res) => {
-  const course = await CourseModel.findById(req.params.id);
-  if (!course) return res.status(404).json({ error: "Course not found" });
-  const sessions = await SessionModel.listByCourse(course._id);
-  res.json({ course, sessions });
-});
+router.get("/", listCourses);
+router.post("/", ensureRole('organiser'), courseValidators, createCourse);
+router.get("/:id", getCourseById);
+router.delete("/:id", ensureRole('organiser'), deleteCourse);
 
 export default router;

@@ -3,20 +3,37 @@ import { CourseModel } from "../models/courseModel.js";
 import { SessionModel } from "../models/sessionModel.js";
 import { BookingModel } from "../models/bookingModel.js";
 
-const canReserveAll = (sessions) =>
-  sessions.every((s) => (s.bookedCount ?? 0) < (s.capacity ?? 0));
-
 export async function bookCourseForUser(userId, courseId) {
   const course = await CourseModel.findById(courseId);
   if (!course) throw new Error("Course not found");
   const sessions = await SessionModel.listByCourse(courseId);
   if (sessions.length === 0) throw new Error("Course has no sessions");
 
+  // Duplicate-booking guard: reject if user already has an active booking for this course
+  const existing = await BookingModel.list({ userId, courseId, status: 'CONFIRMED' });
+  if (existing.length > 0) {
+    const err = new Error("You already have an active booking for this course");
+    err.code = "DUPLICATE_BOOKING";
+    throw err;
+  }
+
   let status = "CONFIRMED";
-  if (!canReserveAll(sessions)) {
-    status = "WAITLISTED";
-  } else {
-    for (const s of sessions) await SessionModel.incrementBookedCount(s._id, 1);
+  const reservedSessionIds = [];
+
+  for (const session of sessions) {
+    const reservedSession = await SessionModel.reserveSeat(session._id, userId);
+    if (!reservedSession) {
+      status = "WAITLISTED";
+      break;
+    }
+
+    reservedSessionIds.push(session._id);
+  }
+
+  if (status === "WAITLISTED") {
+    for (const sessionId of reservedSessionIds) {
+      await SessionModel.adjustCapacity(sessionId, -1, userId);
+    }
   }
 
   return BookingModel.create({
@@ -40,12 +57,17 @@ export async function bookSessionForUser(userId, sessionId) {
     throw err;
   }
 
-  let status = "CONFIRMED";
-  if ((session.bookedCount ?? 0) >= (session.capacity ?? 0)) {
-    status = "WAITLISTED";
-  } else {
-    await SessionModel.incrementBookedCount(session._id, 1);
+  // Duplicate-booking guard: reject if user already has an active booking for this session
+  // NeDB matches scalar against array elements, so sessionIds: id finds docs where the array contains id
+  const existing = await BookingModel.list({ userId, sessionIds: sessionId, status: 'CONFIRMED' });
+  if (existing.length > 0) {
+    const err = new Error("You already have an active booking for this session");
+    err.code = "DUPLICATE_BOOKING";
+    throw err;
   }
+
+  const reservedSession = await SessionModel.reserveSeat(session._id, userId);
+  const status = reservedSession ? "CONFIRMED" : "WAITLISTED";
 
   return BookingModel.create({
     userId,
@@ -54,4 +76,38 @@ export async function bookSessionForUser(userId, sessionId) {
     sessionIds: [session._id],
     status,
   });
+}
+
+/**
+ * Cancel a booking by ID.
+ * Decrements bookedCount on each associated session when the booking was
+ * CONFIRMED so that capacity is restored.
+ * Moved here from bookingController so controllers stay free of data logic.
+ */
+export async function cancelBookingForUser(bookingId, requestingUserId) {
+  const booking = await BookingModel.findById(bookingId);
+  if (!booking) {
+    const err = new Error("Booking not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  if (requestingUserId && booking.userId !== requestingUserId) {
+    const err = new Error("You can only cancel your own bookings");
+    err.code = "FORBIDDEN";
+    throw err;
+  }
+
+  // Idempotent: already cancelled
+  if (booking.status === "CANCELLED") return booking;
+
+  // Restore session capacity only for confirmed bookings
+  // $inc with -1 + $pull atomically decrement and remove user — no race risk
+  if (booking.status === "CONFIRMED") {
+    for (const sid of booking.sessionIds) {
+      await SessionModel.adjustCapacity(sid, -1, booking.userId);
+    }
+  }
+
+  return BookingModel.cancel(bookingId);
 }

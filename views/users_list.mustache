@@ -1,0 +1,59 @@
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  <div class="dashboard-header">
+    <h1>{{ title }}</h1>
+    <a href="/organiser" class="btn">Back to Dashboard</a>
+  </div>
+
+  <div class="table-wrap table-wrap--stack">
+    <table class="table table-stack">
+      <caption>All registered users</caption>
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#users}}
+        <tr>
+          <td data-label="Name">{{name}}</td>
+          <td data-label="Email">{{email}}</td>
+          <td data-label="Role">{{role}}</td>
+          <td data-label="Actions">
+            <div class="table-actions">
+              {{#canPromote}}
+              <form method="post" action="/organiser/users/{{id}}/promote">
+                <button type="submit" class="btn">Promote to Organiser</button>
+              </form>
+              {{/canPromote}}
+              {{#canDemote}}
+              <form method="post" action="/organiser/users/{{id}}/demote"
+                    onsubmit="return confirm('Demote this organiser to student?')">
+                <button type="submit" class="btn">Demote to Student</button>
+              </form>
+              {{/canDemote}}
+              {{#canRemove}}
+              <form method="post" action="/organiser/users/{{id}}/delete"
+                    onsubmit="return confirm('Permanently remove this user?')">
+                <button type="submit" class="btn danger">Remove</button>
+              </form>
+              {{/canRemove}}
+            </div>
+          </td>
+        </tr>
+        {{/users}}
+      </tbody>
+    </table>
+  </div>
+
+  {{^users}}
+  <p class="muted">No users found.</p>
+  {{/users}}
+</div>
+
+{{> footer}}

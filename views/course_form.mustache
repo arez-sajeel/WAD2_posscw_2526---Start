@@ -1,0 +1,117 @@
+
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  {{#errors}}
+  <div class="alert error" role="alert" aria-live="assertive">
+    <ul>
+      {{#list}}
+      <li>{{ . }}</li>
+      {{/list}}
+    </ul>
+  </div>
+  {{/errors}}
+
+  <h1>{{ title }}</h1>
+
+  {{#isNew}}
+  <form method="post" action="/organiser/courses" class="form-stacked">
+  {{/isNew}}
+  {{^isNew}}
+  <form method="post" action="/organiser/courses/{{ courseId }}/edit" class="form-stacked">
+  {{/isNew}}
+
+    <div class="field">
+      <label for="title">Course title</label>
+      <input id="title" name="title" type="text" required value="{{ values.title }}" {{#fieldErrors.title}}aria-describedby="title-error" aria-invalid="true"{{/fieldErrors.title}}>
+      {{#fieldErrors.title}}
+      <p id="title-error" class="field-error" role="alert">{{ fieldErrors.title }}</p>
+      {{/fieldErrors.title}}
+    </div>
+
+    <div class="field">
+      <label for="level">Level</label>
+      <select id="level" name="level" required {{#fieldErrors.level}}aria-describedby="level-error" aria-invalid="true"{{/fieldErrors.level}}>
+        <option value="">— select —</option>
+        <option value="beginner"     {{#values.levelBeginner}}selected{{/values.levelBeginner}}>Beginner</option>
+        <option value="intermediate" {{#values.levelIntermediate}}selected{{/values.levelIntermediate}}>Intermediate</option>
+        <option value="advanced"     {{#values.levelAdvanced}}selected{{/values.levelAdvanced}}>Advanced</option>
+      </select>
+      {{#fieldErrors.level}}
+      <p id="level-error" class="field-error" role="alert">{{ fieldErrors.level }}</p>
+      {{/fieldErrors.level}}
+    </div>
+
+    <div class="field">
+      <label for="type">Type</label>
+      <select id="type" name="type" required {{#fieldErrors.type}}aria-describedby="type-error" aria-invalid="true"{{/fieldErrors.type}}>
+        <option value="">— select —</option>
+        <option value="WEEKEND_WORKSHOP" {{#values.typeWeekendWorkshop}}selected{{/values.typeWeekendWorkshop}}>Weekend Workshop</option>
+        <option value="WEEKLY_BLOCK"     {{#values.typeWeeklyBlock}}selected{{/values.typeWeeklyBlock}}>Weekly Block</option>
+      </select>
+      {{#fieldErrors.type}}
+      <p id="type-error" class="field-error" role="alert">{{ fieldErrors.type }}</p>
+      {{/fieldErrors.type}}
+    </div>
+
+    <div class="field checkbox">
+      <input id="allowDropIn" name="allowDropIn" type="checkbox" {{#values.allowDropIn}}checked{{/values.allowDropIn}}>
+      <label for="allowDropIn">Allow drop-in bookings</label>
+    </div>
+
+    <div class="field">
+      <label for="locationId">Location</label>
+      <select id="locationId" name="locationId">
+        <option value="">— none —</option>
+        {{#locations}}
+        <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+        {{/locations}}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="price">Price (£)</label>
+      <input id="price" name="price" type="number" min="0" step="0.01" value="{{values.price}}" {{#fieldErrors.price}}aria-describedby="price-error" aria-invalid="true"{{/fieldErrors.price}}>
+      {{#fieldErrors.price}}
+      <p id="price-error" class="field-error" role="alert">{{ fieldErrors.price }}</p>
+      {{/fieldErrors.price}}
+    </div>
+
+    <div class="field">
+      <label for="startDate">Start date</label>
+      <input id="startDate" name="startDate" type="date" required value="{{ values.startDate }}" {{#fieldErrors.startDate}}aria-describedby="startDate-error" aria-invalid="true"{{/fieldErrors.startDate}}>
+      {{#fieldErrors.startDate}}
+      <p id="startDate-error" class="field-error" role="alert">{{ fieldErrors.startDate }}</p>
+      {{/fieldErrors.startDate}}
+    </div>
+
+    <div class="field">
+      <label for="endDate">End date</label>
+      <input id="endDate" name="endDate" type="date" required value="{{ values.endDate }}" {{#fieldErrors.endDate}}aria-describedby="endDate-error" aria-invalid="true"{{/fieldErrors.endDate}}>
+      {{#fieldErrors.endDate}}
+      <p id="endDate-error" class="field-error" role="alert">{{ fieldErrors.endDate }}</p>
+      {{/fieldErrors.endDate}}
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="4" {{#fieldErrors.description}}aria-describedby="description-error" aria-invalid="true"{{/fieldErrors.description}}>{{ values.description }}</textarea>
+      {{#fieldErrors.description}}
+      <p id="description-error" class="field-error" role="alert">{{ fieldErrors.description }}</p>
+      {{/fieldErrors.description}}
+    </div>
+
+    <div class="actions">
+      {{#isNew}}
+      <button type="submit" class="btn primary">Create course</button>
+      {{/isNew}}
+      {{^isNew}}
+      <button type="submit" class="btn primary">Save changes</button>
+      {{/isNew}}
+      <a href="/organiser" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{{> footer}}

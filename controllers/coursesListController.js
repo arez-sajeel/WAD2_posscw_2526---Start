@@ -1,6 +1,15 @@
 // controllers/coursesListController.js
 import { CourseModel } from "../models/courseModel.js";
 import { SessionModel } from "../models/sessionModel.js";
+import { LocationModel } from "../models/locationModel.js";
+import {
+  buildCourseLevelLabel,
+  buildCourseDurationLabel,
+  buildCourseTimeLabel,
+  buildCourseTypeLabel,
+  compareCoursesByStartDate,
+  isCurrentOrUpcomingCourse,
+} from "../services/coursePresentationService.js";
 
 const fmtDateOnly = (iso) =>
   iso
@@ -32,7 +41,7 @@ export const coursesListPage = async (req, res, next) => {
       dropin, // yes | no
       q, // text search in title/description (basic contains)
       page = "1", // 1-based
-      pageSize = "10", // default page size
+      pageSize = "6", // default page size
     } = req.query;
 
     // Base filter for DB lookup
@@ -45,6 +54,9 @@ export const coursesListPage = async (req, res, next) => {
     // Fetch all courses matching basic filters
     let courses = await CourseModel.list(filter);
 
+    // Only list courses that are currently running or still upcoming.
+    courses = courses.filter((course) => isCurrentOrUpcomingCourse(course));
+
     // Client-side search (NeDB has basic querying; for simplicity, do it here)
     const needle = (q || "").trim().toLowerCase();
     if (needle) {
@@ -56,26 +68,20 @@ export const coursesListPage = async (req, res, next) => {
     }
 
     // Sort by startDate ascending (fallback to title)
-    courses.sort((a, b) => {
-      const ad = a.startDate
-        ? new Date(a.startDate).getTime()
-        : Number.MAX_SAFE_INTEGER;
-      const bd = b.startDate
-        ? new Date(b.startDate).getTime()
-        : Number.MAX_SAFE_INTEGER;
-      if (ad !== bd) return ad - bd;
-      return (a.title || "").localeCompare(b.title || "");
-    });
+    courses.sort(compareCoursesByStartDate);
 
     // Pagination
-    const p = Math.max(1, parseInt(page, 10) || 1);
-    const ps = Math.max(1, parseInt(pageSize, 10) || 10);
+    const requestedPage = Math.max(1, parseInt(page, 10) || 1);
+    const ps = Math.max(1, parseInt(pageSize, 10) || 6);
     const total = courses.length;
     const totalPages = Math.max(1, Math.ceil(total / ps));
+    const p = Math.min(requestedPage, totalPages);
     const start = (p - 1) * ps;
     const pageItems = courses.slice(start, start + ps);
 
     // Enrich with first session date, session count
+    const allLocations = await LocationModel.list();
+    const locMap = Object.fromEntries(allLocations.map(l => [l._id, l.name]));
     const cards = await Promise.all(
       pageItems.map(async (c) => {
         const sessions = await SessionModel.listByCourse(c._id);
@@ -83,14 +89,19 @@ export const coursesListPage = async (req, res, next) => {
         return {
           id: c._id,
           title: c.title,
-          level: c.level,
-          type: c.type,
+          level: buildCourseLevelLabel(c.level),
+          type: buildCourseTypeLabel(c.type),
           allowDropIn: c.allowDropIn,
+          duration: buildCourseDurationLabel(c, sessions),
           startDate: fmtDateOnly(c.startDate),
           endDate: fmtDateOnly(c.endDate),
+          time: buildCourseTimeLabel(first),
           nextSession: first ? fmtDateTime(first.startDateTime) : "TBA",
           sessionsCount: sessions.length,
           description: c.description,
+          locationName: c.locationId ? locMap[c.locationId] || '' : '',
+          price: c.price != null ? c.price : null,
+          hasPrice: c.price != null,
         };
       })
     );
@@ -101,6 +112,7 @@ export const coursesListPage = async (req, res, next) => {
       pageSize: ps,
       total,
       totalPages,
+      show: totalPages > 1,
       hasPrev: p > 1,
       hasNext: p < totalPages,
       prevLink: p > 1 ? buildLink(req, p - 1, ps) : null,
@@ -111,6 +123,9 @@ export const coursesListPage = async (req, res, next) => {
       title: "Courses",
       filters: {
         level,
+        levelBeginner: level === "beginner",
+        levelIntermediate: level === "intermediate",
+        levelAdvanced: level === "advanced",
         type,
         dropin,
         q,

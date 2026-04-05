@@ -1,0 +1,61 @@
+{{> head}}
+{{> header}}
+
+<div class="wrap">
+  {{#errors}}
+  <div class="alert error" role="alert" aria-live="assertive">
+    <ul>
+      {{#list}}
+      <li>{{ . }}</li>
+      {{/list}}
+    </ul>
+  </div>
+  {{/errors}}
+
+  <h1>{{ title }}</h1>
+  <p class="muted">Course: {{ courseName }}</p>
+
+  {{#isNew}}
+  <form method="post" action="/organiser/courses/{{ courseId }}/sessions" class="form-stacked">
+  {{/isNew}}
+  {{^isNew}}
+  <form method="post" action="/organiser/sessions/{{ sessionId }}/edit" class="form-stacked">
+  {{/isNew}}
+
+    <div class="field">
+      <label for="startDateTime">Start date &amp; time</label>
+      <input id="startDateTime" name="startDateTime" type="datetime-local" required value="{{ values.startDateTime }}" {{#fieldErrors.startDateTime}}aria-describedby="startDateTime-error" aria-invalid="true"{{/fieldErrors.startDateTime}}>
+      {{#fieldErrors.startDateTime}}
+      <p id="startDateTime-error" class="field-error" role="alert">{{ fieldErrors.startDateTime }}</p>
+      {{/fieldErrors.startDateTime}}
+    </div>
+
+    <div class="field">
+      <label for="endDateTime">End date &amp; time</label>
+      <input id="endDateTime" name="endDateTime" type="datetime-local" required value="{{ values.endDateTime }}" {{#fieldErrors.endDateTime}}aria-describedby="endDateTime-error" aria-invalid="true"{{/fieldErrors.endDateTime}}>
+      {{#fieldErrors.endDateTime}}
+      <p id="endDateTime-error" class="field-error" role="alert">{{ fieldErrors.endDateTime }}</p>
+      {{/fieldErrors.endDateTime}}
+    </div>
+
+    <div class="field">
+      <label for="capacity">Capacity</label>
+      <input id="capacity" name="capacity" type="number" min="1" required value="{{ values.capacity }}" {{#fieldErrors.capacity}}aria-describedby="capacity-error" aria-invalid="true"{{/fieldErrors.capacity}}>
+      {{#fieldErrors.capacity}}
+      <p id="capacity-error" class="field-error" role="alert">{{ fieldErrors.capacity }}</p>
+      {{/fieldErrors.capacity}}
+    </div>
+
+    <div class="actions">
+      {{#isNew}}
+      <button type="submit" class="btn primary">Add session</button>
+      {{/isNew}}
+      {{^isNew}}
+      <button type="submit" class="btn primary">Save changes</button>
+      {{/isNew}}
+      <a href="/organiser/courses/{{ courseId }}/sessions" class="btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{{> footer}}
