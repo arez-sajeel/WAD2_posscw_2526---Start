@@ -1,5 +1,11 @@
 # WAD2 Yoga & Mindfulness Booking System
 
+## Live Deployment
+**URL:** https://wad2-posscw-2526-start.onrender.com/
+
+> **Important Deployment Note regarding NeDB:**
+> This application is hosted on Render's free tier, which utilizes an ephemeral file system. Because NeDB stores data in local `.db` files, any new bookings or courses created on the live site will be reset to the original seed data when the server spins down due to inactivity. For persistent data testing, please use the local installation instructions below.
+
 ## Demo Credentials
 *Please use these accounts to test role-based access.*
 
