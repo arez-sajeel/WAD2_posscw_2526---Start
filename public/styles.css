@@ -751,6 +751,8 @@ textarea {
     }
 
     .table-stack caption {
+        display: block;
+        width: 100%;
         padding: 0 0 0.9rem;
         background: transparent;
     }
@@ -778,6 +780,7 @@ textarea {
         padding: 0;
         border: 0;
         text-align: left;
+        line-height: 1.4;
     }
 
     .table-stack td::before {
@@ -792,6 +795,11 @@ textarea {
 
     .table-stack td .btn {
         width: 100%;
+    }
+
+    .table-stack td[data-label="Book"] {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 }
 
@@ -877,6 +885,15 @@ textarea {
     margin: 0;
 }
 
+.booking-summary-table td[data-label="Places left"] {
+    font-weight: 600;
+}
+
+.booking-form-actions {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
 .table caption {
     padding: 0.75rem;
     color: #333333;
@@ -910,5 +927,15 @@ textarea {
     .course-meta {
         flex-direction: column;
         gap: 0.4rem;
+    }
+
+    .booking-form-actions {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .table-stack__caption {
+        margin: 0;
+        line-height: 1.4;
     }
 }

@@ -61,14 +61,28 @@
     <fieldset>
       <legend>Booking summary</legend>
       <p>This booking reserves a seat across <strong>{{sessionsCount}}</strong> sessions:</p>
-      <ul class="muted">
-        {{#sessions}}
-        <li>{{start}} ({{remaining}} places left)</li>
-        {{/sessions}}
-      </ul>
+      <div class="table-wrap table-wrap--stack">
+        <table class="table table-stack booking-summary-table">
+          <caption class="visually-hidden">Sessions included in this course booking</caption>
+          <thead>
+            <tr>
+              <th scope="col">Session</th>
+              <th scope="col">Places left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#sessions}}
+            <tr>
+              <td data-label="Session">{{start}}</td>
+              <td data-label="Places left">{{remaining}}</td>
+            </tr>
+            {{/sessions}}
+          </tbody>
+        </table>
+      </div>
     </fieldset>
 
-    <div class="actions">
+    <div class="actions booking-form-actions">
       <button class="btn primary" type="submit">Confirm Course Booking</button>
       <a href="/courses/{{course.id}}" class="btn">Cancel</a>
     </div>
