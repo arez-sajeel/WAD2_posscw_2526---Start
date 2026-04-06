@@ -7,6 +7,7 @@ import {
   sessionBookingPage,
   postBookCourse,
   postBookSession,
+  postCancelBookingPage,
   bookingConfirmationPage,
   organisationPage,
   locationsPage,
@@ -49,6 +50,7 @@ router.post(
 router.get("/sessions/:id/book", sessionBookingPage);
 router.post("/sessions/:id/book", ensureAuthenticated, postBookSession);
 router.get("/bookings/:bookingId", ensureAuthenticated, bookingConfirmationPage);
+router.post("/bookings/:bookingId/cancel", ensureAuthenticated, postCancelBookingPage);
 
 
 export default router;

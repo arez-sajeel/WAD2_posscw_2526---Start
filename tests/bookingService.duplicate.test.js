@@ -43,6 +43,20 @@ describe("bookingService – duplicate prevention", () => {
       /already have an active booking/i
     );
   });
+
+  test("rejects course booking when the user already has a session booking on that course", async () => {
+    await bookSessionForUser(student._id, data.sessions[0]._id);
+    await expect(bookCourseForUser(student._id, data.course._id)).rejects.toThrow(
+      /already have an active booking/i
+    );
+  });
+
+  test("rejects session booking when the user already has a course booking", async () => {
+    await bookCourseForUser(student._id, data.course._id);
+    await expect(bookSessionForUser(student._id, data.sessions[0]._id)).rejects.toThrow(
+      /already have an active booking/i
+    );
+  });
 });
 
 describe("bookingService – cancelBookingForUser", () => {

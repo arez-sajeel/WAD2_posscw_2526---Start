@@ -2,6 +2,7 @@
 import { CourseModel } from "../models/courseModel.js";
 import { SessionModel } from "../models/sessionModel.js";
 import { BookingModel } from "../models/bookingModel.js";
+import { listActiveBookingsForUser } from "./bookingStateService.js";
 
 export async function bookCourseForUser(userId, courseId) {
   const course = await CourseModel.findById(courseId);
@@ -9,9 +10,11 @@ export async function bookCourseForUser(userId, courseId) {
   const sessions = await SessionModel.listByCourse(courseId);
   if (sessions.length === 0) throw new Error("Course has no sessions");
 
-  // Duplicate-booking guard: reject if user already has an active booking for this course
-  const existing = await BookingModel.list({ userId, courseId, status: 'CONFIRMED' });
-  if (existing.length > 0) {
+  const activeBookings = await listActiveBookingsForUser(userId);
+  const hasOverlappingCourseBooking = activeBookings.some(
+    (booking) => booking.courseId === courseId
+  );
+  if (hasOverlappingCourseBooking) {
     const err = new Error("You already have an active booking for this course");
     err.code = "DUPLICATE_BOOKING";
     throw err;
@@ -57,10 +60,15 @@ export async function bookSessionForUser(userId, sessionId) {
     throw err;
   }
 
-  // Duplicate-booking guard: reject if user already has an active booking for this session
-  // NeDB matches scalar against array elements, so sessionIds: id finds docs where the array contains id
-  const existing = await BookingModel.list({ userId, sessionIds: sessionId, status: 'CONFIRMED' });
-  if (existing.length > 0) {
+  const activeBookings = await listActiveBookingsForUser(userId);
+  const hasOverlappingSessionBooking = activeBookings.some((booking) => {
+    if (booking.type === "COURSE") {
+      return booking.courseId === course._id;
+    }
+
+    return (booking.sessionIds ?? []).includes(sessionId);
+  });
+  if (hasOverlappingSessionBooking) {
     const err = new Error("You already have an active booking for this session");
     err.code = "DUPLICATE_BOOKING";
     throw err;

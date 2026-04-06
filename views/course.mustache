@@ -5,7 +5,12 @@
 <article class="wrap course-detail">
   <header class="course-detail__header">
     <p class="eyebrow">Course details</p>
-    <h1>{{course.title}}</h1>
+    <div class="course-detail__heading">
+      <h1>{{course.title}}</h1>
+      {{#course.booking}}
+      <p class="status-pill {{statusClass}}">{{statusLabel}}</p>
+      {{/course.booking}}
+    </div>
     <p class="course-meta">
       <span>Level: {{course.level}}</span>
       <span>Type: {{course.type}}</span>
@@ -18,6 +23,21 @@
   </header>
 
   <section class="course-section" aria-labelledby="course-booking-heading">
+    {{#course.booking}}
+    <h2 id="course-booking-heading">Manage your booking</h2>
+    <div class="booking-panel">
+      <p class="muted booking-note">{{message}}</p>
+      <div class="actions booking-panel__actions">
+        <a class="btn primary" href="{{manageHref}}">Manage booking</a>
+        {{#canCancel}}
+        <form method="post" action="/bookings/{{bookingId}}/cancel" onsubmit="return confirm('Cancel this booking?')">
+          <button class="btn" type="submit">Cancel booking</button>
+        </form>
+        {{/canCancel}}
+      </div>
+    </div>
+    {{/course.booking}}
+    {{^course.booking}}
     <h2 id="course-booking-heading">Book this course</h2>
     {{#user}}
     <a class="btn primary" href="/courses/{{course.id}}/book">Book full course</a>
@@ -26,6 +46,7 @@
     <p class="muted">You need to sign in before making a booking.</p>
     <a class="btn primary" href="/auth/login">Log in to book</a>
     {{/user}}
+    {{/course.booking}}
   </section>
 
   <section class="course-section" aria-labelledby="course-sessions-heading">
@@ -53,12 +74,18 @@
             <td data-label="Remaining">{{remaining}}</td>
             {{#course.allowDropIn}}
             <td data-label="Book">
+              {{#booking}}
+              <span class="session-booking-state {{statusClass}}">{{statusLabel}}</span>
+              <a class="btn" href="{{manageHref}}">Manage</a>
+              {{/booking}}
+              {{^booking}}
               {{#canBook}}
               <a class="btn" href="/sessions/{{id}}/book">Book</a>
               {{/canBook}}
               {{^canBook}}
               <span class="muted">Full</span>
               {{/canBook}}
+              {{/booking}}
             </td>
             {{/course.allowDropIn}}
           </tr>

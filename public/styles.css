@@ -542,6 +542,21 @@ main {
     letter-spacing: 0.01em;
 }
 
+.booking-status--confirmed {
+    color: var(--accent);
+    background: rgba(31, 111, 67, 0.12);
+}
+
+.booking-status--waitlisted {
+    color: #8a5b00;
+    background: rgba(186, 123, 0, 0.14);
+}
+
+.booking-status--cancelled {
+    color: #7a1f1f;
+    background: rgba(122, 31, 31, 0.12);
+}
+
 .status-live {
     color: var(--accent);
     background: rgba(31, 111, 67, 0.12);
@@ -720,6 +735,30 @@ textarea {
         align-items: stretch;
     }
 
+    .booking-panel__actions,
+    .booking-confirmation__actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    }
+
+    .booking-panel__actions > *,
+    .booking-confirmation__actions > * {
+        min-width: 0;
+    }
+
+    .booking-panel__actions .btn,
+    .booking-confirmation__actions .btn {
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .booking-panel__actions form,
+    .booking-confirmation__actions form {
+        width: 100%;
+    }
+
     .course-detail {
         padding: 1.25rem;
         gap: 1.5rem;
@@ -840,6 +879,14 @@ textarea {
     gap: 1rem;
 }
 
+.course-detail__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
 .course-detail h1 {
     margin: 0;
     color: #222222;
@@ -885,6 +932,39 @@ textarea {
     margin: 0;
 }
 
+.booked-courses-grid {
+    margin-bottom: 2rem;
+}
+
+.booking-panel {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(44, 62, 80, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+}
+
+.booking-panel__actions {
+    align-items: stretch;
+}
+
+.booking-note {
+    margin: 0;
+}
+
+.session-booking-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.85rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-align: center;
+}
+
 .booking-confirmation {
     gap: 1.75rem;
 }
@@ -904,21 +984,6 @@ textarea {
 .booking-confirmation__status {
     display: inline-flex;
     align-items: center;
-}
-
-.booking-confirmation__status--confirmed {
-    color: var(--accent);
-    background: rgba(31, 111, 67, 0.12);
-}
-
-.booking-confirmation__status--waitlisted {
-    color: #8a5b00;
-    background: rgba(186, 123, 0, 0.14);
-}
-
-.booking-confirmation__status--cancelled {
-    color: #7a1f1f;
-    background: rgba(122, 31, 31, 0.12);
 }
 
 .booking-confirmation__details {
@@ -1004,6 +1069,10 @@ textarea {
         padding: 1rem;
     }
 
+    .booking-panel {
+        padding: 1rem;
+    }
+
     .booking-confirmation__actions > * {
         width: 100%;
     }
@@ -1011,5 +1080,9 @@ textarea {
     .booking-confirmation__actions .btn {
         width: 100%;
         text-align: center;
+    }
+
+    .course-detail__heading {
+        align-items: flex-start;
     }
 }

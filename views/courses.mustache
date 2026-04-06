@@ -32,11 +32,62 @@
     </form>
   </section>
 
+  {{#hasBookedCourses}}
+  <section aria-labelledby="booked-courses-heading">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Your practice</p>
+        <h2 id="booked-courses-heading">Your booked courses</h2>
+      </div>
+    </div>
+
+    <div class="cards cards-list booked-courses-grid">
+      {{#bookedCourses}}
+      <article class="card">
+        <div class="card-copy">
+          <div class="card-heading">
+            <h2><a href="/courses/{{id}}">{{title}}</a></h2>
+            {{#booking}}
+            <p class="status-pill {{statusClass}}">{{statusLabel}}</p>
+            {{/booking}}
+          </div>
+          <p class="card-meta">
+            <span>Level: {{level}}</span>
+            <span>Type: {{type}}</span>
+            {{#allowDropIn}}<span>Drop-in available</span>{{/allowDropIn}}
+          </p>
+          <p>{{description}}</p>
+          <p class="muted">Duration: {{duration}}</p>
+          <p class="muted">Dates: {{startDate}} – {{endDate}}</p>
+          <p class="muted">Time: {{time}}</p>
+          {{#locationName}}<p class="muted">Location: {{locationName}}</p>{{/locationName}}
+          {{#hasPrice}}<p class="muted">Price: £{{price}}</p>{{/hasPrice}}
+          <p class="muted">Next session: {{nextSession}}</p>
+          <p class="muted">Sessions: {{sessionsCount}}</p>
+          {{#booking}}<p class="muted booking-note">{{message}}</p>{{/booking}}
+        </div>
+        <div class="card-actions">
+          {{#booking}}
+          <a class="btn primary" href="{{manageHref}}">Manage booking</a>
+          {{/booking}}
+          <a class="btn" href="/courses/{{id}}">View course</a>
+        </div>
+      </article>
+      {{/bookedCourses}}
+    </div>
+  </section>
+  {{/hasBookedCourses}}
+
   <div class="cards cards-list">
     {{#courses}}
     <article class="card">
       <div class="card-copy">
-        <h2><a href="/courses/{{id}}">{{title}}</a></h2>
+        <div class="card-heading">
+          <h2><a href="/courses/{{id}}">{{title}}</a></h2>
+          {{#booking}}
+          <p class="status-pill {{statusClass}}">{{statusLabel}}</p>
+          {{/booking}}
+        </div>
         <p class="card-meta">
           <span>Level: {{level}}</span>
           <span>Type: {{type}}</span>
@@ -50,9 +101,16 @@
         {{#hasPrice}}<p class="muted">Price: £{{price}}</p>{{/hasPrice}}
         <p class="muted">Next session: {{nextSession}}</p>
         <p class="muted">Sessions: {{sessionsCount}}</p>
+        {{#booking}}<p class="muted booking-note">{{message}}</p>{{/booking}}
       </div>
       <div class="card-actions">
+        {{#booking}}
+        <a class="btn primary" href="{{manageHref}}">Manage booking</a>
+        <a class="btn" href="/courses/{{id}}">View course</a>
+        {{/booking}}
+        {{^booking}}
         <a class="btn" href="/courses/{{id}}">View &amp; Book</a>
+        {{/booking}}
       </div>
     </article>
     {{/courses}}

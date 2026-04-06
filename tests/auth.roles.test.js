@@ -133,4 +133,47 @@ describe("Booking confirmation access", () => {
     expect(otherRes.status).toBe(403);
     expect(otherRes.text).toMatch(/do not have permission/i);
   });
+
+  test("students see booked state across pages and can cancel their own booking", async () => {
+    const studentAgent = request.agent(app);
+    const student = await registerAs(
+      studentAgent,
+      "Booked Student",
+      "booked-student@test.local",
+      "password123"
+    );
+
+    const booking = await bookCourseForUser(student._id, data.course._id);
+
+    const homeRes = await studentAgent.get("/");
+    expect(homeRes.status).toBe(200);
+    expect(homeRes.text).toMatch(/Your booked courses/i);
+    expect(homeRes.text).toMatch(/Manage booking/i);
+
+    const coursesRes = await studentAgent.get("/courses");
+    expect(coursesRes.status).toBe(200);
+    expect(coursesRes.text).toMatch(/Your booked courses/i);
+    expect(coursesRes.text).toMatch(/Course booked/i);
+
+    const detailRes = await studentAgent.get(`/courses/${data.course._id}`);
+    expect(detailRes.status).toBe(200);
+    expect(detailRes.text).toMatch(/Manage your booking/i);
+    expect(detailRes.text).not.toMatch(/Book full course/i);
+
+    const bookedFormRes = await studentAgent.get(`/courses/${data.course._id}/book`);
+    expect(bookedFormRes.status).toBe(302);
+    expect(bookedFormRes.headers.location).toBe(`/bookings/${booking._id}`);
+
+    const cancelRes = await studentAgent.post(`/bookings/${booking._id}/cancel`);
+    expect(cancelRes.status).toBe(302);
+    expect(cancelRes.headers.location).toBe(`/bookings/${booking._id}`);
+
+    const cancelledRes = await studentAgent.get(`/bookings/${booking._id}`);
+    expect(cancelledRes.status).toBe(200);
+    expect(cancelledRes.text).toMatch(/Cancelled/i);
+
+    const refreshedDetailRes = await studentAgent.get(`/courses/${data.course._id}`);
+    expect(refreshedDetailRes.status).toBe(200);
+    expect(refreshedDetailRes.text).toMatch(/Book full course/i);
+  });
 });

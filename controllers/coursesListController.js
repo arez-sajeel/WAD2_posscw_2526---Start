@@ -3,6 +3,11 @@ import { CourseModel } from "../models/courseModel.js";
 import { SessionModel } from "../models/sessionModel.js";
 import { LocationModel } from "../models/locationModel.js";
 import {
+  buildCourseBookingSummary,
+  createUserBookingIndex,
+  listActiveBookingsForUser,
+} from "../services/bookingStateService.js";
+import {
   buildCourseLevelLabel,
   buildCourseDurationLabel,
   buildCourseTimeLabel,
@@ -34,6 +39,9 @@ const fmtDateTime = (iso) =>
 
 export const coursesListPage = async (req, res, next) => {
   try {
+    const activeBookings = await listActiveBookingsForUser(req.user?._id);
+    const bookingIndex = createUserBookingIndex(activeBookings);
+
     // Query params for filters/pagination
     const {
       level, // beginner | intermediate | advanced
@@ -82,28 +90,38 @@ export const coursesListPage = async (req, res, next) => {
     // Enrich with first session date, session count
     const allLocations = await LocationModel.list();
     const locMap = Object.fromEntries(allLocations.map(l => [l._id, l.name]));
+    const buildCourseCard = async (course) => {
+      const sessions = await SessionModel.listByCourse(course._id);
+      const first = sessions[0];
+      return {
+        id: course._id,
+        title: course.title,
+        level: buildCourseLevelLabel(course.level),
+        type: buildCourseTypeLabel(course.type),
+        allowDropIn: course.allowDropIn,
+        duration: buildCourseDurationLabel(course, sessions),
+        startDate: fmtDateOnly(course.startDate),
+        endDate: fmtDateOnly(course.endDate),
+        time: buildCourseTimeLabel(first),
+        nextSession: first ? fmtDateTime(first.startDateTime) : "TBA",
+        sessionsCount: sessions.length,
+        description: course.description,
+        locationName: course.locationId ? locMap[course.locationId] || '' : '',
+        price: course.price != null ? course.price : null,
+        hasPrice: course.price != null,
+        booking: buildCourseBookingSummary(bookingIndex, course._id),
+      };
+    };
+
     const cards = await Promise.all(
-      pageItems.map(async (c) => {
-        const sessions = await SessionModel.listByCourse(c._id);
-        const first = sessions[0];
-        return {
-          id: c._id,
-          title: c.title,
-          level: buildCourseLevelLabel(c.level),
-          type: buildCourseTypeLabel(c.type),
-          allowDropIn: c.allowDropIn,
-          duration: buildCourseDurationLabel(c, sessions),
-          startDate: fmtDateOnly(c.startDate),
-          endDate: fmtDateOnly(c.endDate),
-          time: buildCourseTimeLabel(first),
-          nextSession: first ? fmtDateTime(first.startDateTime) : "TBA",
-          sessionsCount: sessions.length,
-          description: c.description,
-          locationName: c.locationId ? locMap[c.locationId] || '' : '',
-          price: c.price != null ? c.price : null,
-          hasPrice: c.price != null,
-        };
-      })
+      pageItems.map((course) => buildCourseCard(course))
+    );
+
+    const bookedSourceCourses = courses.filter(
+      (course) => buildCourseBookingSummary(bookingIndex, course._id)
+    );
+    const bookedCourses = await Promise.all(
+      bookedSourceCourses.map((course) => buildCourseCard(course))
     );
 
     // Build pagination view model
@@ -131,6 +149,8 @@ export const coursesListPage = async (req, res, next) => {
         q,
       },
       courses: cards,
+      bookedCourses,
+      hasBookedCourses: bookedCourses.length > 0,
       pagination,
     });
   } catch (err) {

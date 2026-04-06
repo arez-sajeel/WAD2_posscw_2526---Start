@@ -13,16 +13,65 @@
   </div>
 </section>
 
+{{#hasBookedCourses}}
+<section class="wrap" aria-labelledby="home-booked-courses-heading">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Your practice</p>
+      <h2 id="home-booked-courses-heading">Your booked courses</h2>
+    </div>
+  </div>
+
+  <div class="cards">
+    {{#bookedCourses}}
+    <article class="card">
+      <div class="card-copy">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">{{level}}</p>
+            <h2>{{title}}</h2>
+          </div>
+          {{#booking}}
+          <p class="status-pill {{statusClass}}">{{statusLabel}}</p>
+          {{/booking}}
+        </div>
+        <p class="card-meta">
+          <span>{{type}}</span>
+          {{#allowDropIn}}<span>Drop-in available</span>{{/allowDropIn}}
+        </p>
+        <p>{{description}}</p>
+        <p class="muted">Duration: {{duration}}</p>
+        <p class="muted">Dates: {{startDate}} to {{endDate}}</p>
+        <p class="muted">Time: {{time}}</p>
+        {{#locationName}}<p class="muted">Location: {{locationName}}</p>{{/locationName}}
+        {{#hasPrice}}<p class="muted">Price: £{{price}}</p>{{/hasPrice}}
+        <p class="muted">Next session: {{nextSession}}</p>
+        <p class="muted">Sessions: {{sessionsCount}}</p>
+        {{#booking}}<p class="muted booking-note">{{message}}</p>{{/booking}}
+      </div>
+      <div class="card-actions">
+        {{#booking}}
+        <a class="btn primary" href="{{manageHref}}">Manage booking</a>
+        {{/booking}}
+        <a class="btn" href="/courses/{{id}}">View course</a>
+      </div>
+    </article>
+    {{/bookedCourses}}
+  </div>
+</section>
+{{/hasBookedCourses}}
+
 <section class="wrap">
   <div class="section-header">
     <div>
-      <p class="eyebrow">Now booking</p>
+      {{#hasBookedCourses}}<p class="eyebrow">More to explore</p>{{/hasBookedCourses}}
+      {{^hasBookedCourses}}<p class="eyebrow">Now booking</p>{{/hasBookedCourses}}
       <h2>Featured courses</h2>
     </div>
   </div>
 
   <div class="cards">
-    {{#courses}}
+    {{#featuredCourses}}
     <article class="card">
       <div class="card-copy">
         <p class="eyebrow">{{level}}</p>
@@ -45,14 +94,14 @@
         <a class="btn" href="/courses">See all courses</a>
       </div>
     </article>
-    {{/courses}}
+    {{/featuredCourses}}
 
-    {{^courses}}
+    {{^hasFeaturedCourses}}
     <article class="card empty-state">
-      <h2>No courses available yet</h2>
-      <p class="muted">Check back soon for newly scheduled classes and workshops.</p>
+      <h2>No additional courses available right now</h2>
+      <p class="muted">Your active bookings are up to date. Check back soon for newly scheduled classes and workshops.</p>
     </article>
-    {{/courses}}
+    {{/hasFeaturedCourses}}
   </div>
 </section>
 

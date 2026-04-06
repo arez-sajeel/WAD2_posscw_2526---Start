@@ -26,7 +26,15 @@
     <h2 id="booking-next-steps-heading">Next steps</h2>
     <p class="muted booking-confirmation__note">{{booking.nextStep}}</p>
     <div class="actions booking-confirmation__actions">
-      <a class="btn primary" href="/courses">Back to courses</a>
+      <a class="btn primary" href="{{booking.courseHref}}">{{#booking.hasCourse}}View course{{/booking.hasCourse}}{{^booking.hasCourse}}Back to courses{{/booking.hasCourse}}</a>
+      {{#booking.hasCourse}}
+      <a class="btn" href="/courses">Browse all courses</a>
+      {{/booking.hasCourse}}
+      {{#booking.canCancel}}
+      <form method="post" action="/bookings/{{booking.id}}/cancel" onsubmit="return confirm('Cancel this booking?')">
+        <button class="btn" type="submit">Cancel booking</button>
+      </form>
+      {{/booking.canCancel}}
     </div>
   </section>
 </article>

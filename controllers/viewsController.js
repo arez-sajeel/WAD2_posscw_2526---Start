@@ -5,9 +5,18 @@ import { LocationModel } from "../models/locationModel.js";
 import {
   bookCourseForUser,
   bookSessionForUser,
+  cancelBookingForUser,
 } from "../services/bookingService.js";
 import { BookingModel } from "../models/bookingModel.js";
 import { validationResult } from "express-validator";
+import {
+  buildBookingStatusMeta,
+  buildCourseBookingSummary,
+  buildSessionBookingSummary,
+  createUserBookingIndex,
+  isActiveBooking,
+  listActiveBookingsForUser,
+} from "../services/bookingStateService.js";
 import {
   buildCourseLevelLabel,
   buildCourseDurationLabel,
@@ -80,25 +89,14 @@ const buildCourseBookingViewModel = async (req, courseId, overrides = {}) => {
   };
 };
 
-const buildBookingConfirmationViewModel = (booking) => {
+const buildBookingConfirmationViewModel = (booking, course = null) => {
   const status = booking.status ?? "";
   const type = booking.type ?? "";
-
-  const statusLabel =
-    status === "CONFIRMED"
-      ? "Confirmed"
-      : status === "WAITLISTED"
-      ? "Waitlisted"
-      : status === "CANCELLED"
-      ? "Cancelled"
-      : status;
-
-  const statusClass =
-    status === "CONFIRMED"
-      ? "booking-confirmation__status--confirmed"
-      : status === "WAITLISTED"
-      ? "booking-confirmation__status--waitlisted"
-      : "booking-confirmation__status--cancelled";
+  const statusMeta = buildBookingStatusMeta(status, {
+    confirmed: "Confirmed",
+    waitlisted: "Waitlisted",
+    cancelled: "Cancelled",
+  });
 
   const typeLabel = type === "SESSION" ? "Single session" : "Full course";
 
@@ -129,20 +127,27 @@ const buildBookingConfirmationViewModel = (booking) => {
 
   return {
     id: booking._id,
+    courseId: booking.courseId ?? "",
+    courseTitle: course?.title ?? "",
+    hasCourse: !!course,
+    courseHref: course ? `/courses/${course._id}` : "/courses",
     type,
     typeLabel,
     status,
-    statusLabel,
-    statusClass,
+    statusLabel: statusMeta.label,
+    statusClass: statusMeta.className,
     eyebrow,
     message,
     nextStep,
+    canCancel: isActiveBooking(booking),
     createdAt: booking.createdAt ? fmtDate(booking.createdAt) : "Unavailable",
   };
 };
 
 export const homePage = async (req, res, next) => {
   try {
+    const activeBookings = await listActiveBookingsForUser(req.user?._id);
+    const bookingIndex = createUserBookingIndex(activeBookings);
     const courses = (await CourseModel.list())
       .filter((course) => isCurrentOrUpcomingCourse(course))
       .sort(compareCoursesByStartDate)
@@ -169,10 +174,24 @@ export const homePage = async (req, res, next) => {
           locationName: c.locationId ? locMap[c.locationId] || '' : '',
           price: c.price != null ? c.price : null,
           hasPrice: c.price != null,
+          booking: buildCourseBookingSummary(bookingIndex, c._id),
         };
       })
     );
-    res.render("home", { title: "Yoga Courses", courses: cards });
+
+    const bookedCourses = cards.filter((card) => card.booking);
+    const featuredCourses =
+      bookedCourses.length > 0
+        ? cards.filter((card) => !card.booking)
+        : cards;
+
+    res.render("home", {
+      title: "Yoga Courses",
+      bookedCourses,
+      hasBookedCourses: bookedCourses.length > 0,
+      featuredCourses,
+      hasFeaturedCourses: featuredCourses.length > 0,
+    });
   } catch (err) {
     next(err);
   }
@@ -189,8 +208,12 @@ export const courseDetailPage = async (req, res, next) => {
 
     const location = course.locationId ? await LocationModel.findById(course.locationId) : null;
     const sessions = await SessionModel.listByCourse(courseId);
+    const activeBookings = await listActiveBookingsForUser(req.user?._id);
+    const bookingIndex = createUserBookingIndex(activeBookings);
+    const courseBooking = buildCourseBookingSummary(bookingIndex, courseId);
     const rows = sessions.map((s) => {
       const remaining = Math.max(0, (s.capacity ?? 0) - (s.bookedCount ?? 0));
+      const booking = buildSessionBookingSummary(bookingIndex, courseId, s._id);
       return {
         id: s._id,
         start: fmtDate(s.startDateTime),
@@ -198,7 +221,8 @@ export const courseDetailPage = async (req, res, next) => {
         capacity: s.capacity,
         booked: s.bookedCount ?? 0,
         remaining,
-        canBook: course.allowDropIn && remaining > 0,
+        canBook: course.allowDropIn && remaining > 0 && !booking,
+        booking,
       };
     });
 
@@ -217,6 +241,7 @@ export const courseDetailPage = async (req, res, next) => {
         hasLocation: !!location,
         price: course.price != null ? course.price : null,
         hasPrice: course.price != null,
+        booking: courseBooking,
       },
       sessions: rows,
     });
@@ -227,6 +252,18 @@ export const courseDetailPage = async (req, res, next) => {
 
 export const courseBookingPage = async (req, res, next) => {
   try {
+    const activeBookings = await listActiveBookingsForUser(req.user?._id);
+    const bookingIndex = createUserBookingIndex(activeBookings);
+    const existingBooking = buildCourseBookingSummary(bookingIndex, req.params.id);
+
+    if (existingBooking?.bookingId) {
+      return res.redirect(existingBooking.manageHref);
+    }
+
+    if (existingBooking) {
+      return res.redirect(`/courses/${req.params.id}`);
+    }
+
     const viewModel = await buildCourseBookingViewModel(req, req.params.id);
     if (!viewModel) {
       return res
@@ -254,6 +291,18 @@ export const sessionBookingPage = async (req, res, next) => {
       return res
         .status(404)
         .render("error", { title: "Not found", message: "Course not found" });
+    }
+
+    const activeBookings = await listActiveBookingsForUser(req.user?._id);
+    const bookingIndex = createUserBookingIndex(activeBookings);
+    const existingBooking = buildSessionBookingSummary(
+      bookingIndex,
+      course._id,
+      session._id
+    );
+
+    if (existingBooking?.bookingId) {
+      return res.redirect(existingBooking.manageHref);
     }
 
     res.render("session_book", {
@@ -331,6 +380,27 @@ export const postBookSession = async (req, res, next) => {
   }
 };
 
+export const postCancelBookingPage = async (req, res, next) => {
+  try {
+    const booking = await cancelBookingForUser(req.params.bookingId, req.user._id);
+    res.redirect(`/bookings/${booking._id}`);
+  } catch (err) {
+    if (err.code === "NOT_FOUND") {
+      return res
+        .status(404)
+        .render("error", { title: "Not found", message: err.message });
+    }
+
+    if (err.code === "FORBIDDEN") {
+      return res
+        .status(403)
+        .render("error", { title: "Forbidden", message: err.message });
+    }
+
+    next(err);
+  }
+};
+
 export const bookingConfirmationPage = async (req, res, next) => {
   try {
     const bookingId = req.params.bookingId;
@@ -349,9 +419,11 @@ export const bookingConfirmationPage = async (req, res, next) => {
       });
     }
 
+    const course = booking.courseId ? await CourseModel.findById(booking.courseId) : null;
+
     res.render("booking_confirmation", {
       title: "Booking confirmation",
-      booking: buildBookingConfirmationViewModel(booking),
+      booking: buildBookingConfirmationViewModel(booking, course),
     });
   } catch (err) {
     next(err);
