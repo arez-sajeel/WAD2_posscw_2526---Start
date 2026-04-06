@@ -80,6 +80,67 @@ const buildCourseBookingViewModel = async (req, courseId, overrides = {}) => {
   };
 };
 
+const buildBookingConfirmationViewModel = (booking) => {
+  const status = booking.status ?? "";
+  const type = booking.type ?? "";
+
+  const statusLabel =
+    status === "CONFIRMED"
+      ? "Confirmed"
+      : status === "WAITLISTED"
+      ? "Waitlisted"
+      : status === "CANCELLED"
+      ? "Cancelled"
+      : status;
+
+  const statusClass =
+    status === "CONFIRMED"
+      ? "booking-confirmation__status--confirmed"
+      : status === "WAITLISTED"
+      ? "booking-confirmation__status--waitlisted"
+      : "booking-confirmation__status--cancelled";
+
+  const typeLabel = type === "SESSION" ? "Single session" : "Full course";
+
+  const eyebrow =
+    status === "CONFIRMED"
+      ? "Booking confirmed"
+      : status === "WAITLISTED"
+      ? "Waitlist update"
+      : "Booking update";
+
+  const message =
+    status === "CONFIRMED"
+      ? type === "SESSION"
+        ? "Your session place is secured and ready for you."
+        : "Your place on this course has been reserved across the scheduled sessions."
+      : status === "WAITLISTED"
+      ? type === "SESSION"
+        ? "You have been added to the waitlist for this session."
+        : "You have been added to the waitlist for this course."
+      : "This booking is no longer active.";
+
+  const nextStep =
+    status === "CONFIRMED"
+      ? "Keep this reference handy if you need to contact the studio about your booking."
+      : status === "WAITLISTED"
+      ? "Keep this reference in case the studio confirms a place for you."
+      : "If you still want to attend, return to the courses page to make another booking.";
+
+  return {
+    id: booking._id,
+    type,
+    typeLabel,
+    status,
+    statusLabel,
+    statusClass,
+    eyebrow,
+    message,
+    nextStep,
+    createdAt: booking.createdAt ? fmtDate(booking.createdAt) : "Unavailable",
+  };
+};
+
 export const homePage = async (req, res, next) => {
   try {
     const courses = (await CourseModel.list())
@@ -290,12 +351,7 @@ export const bookingConfirmationPage = async (req, res, next) => {
 
     res.render("booking_confirmation", {
       title: "Booking confirmation",
-      booking: {
-        id: booking._id,
-        type: booking.type,
-        status: booking.status,
-        createdAt: booking.createdAt ? fmtDate(booking.createdAt) : "",
-      },
+      booking: buildBookingConfirmationViewModel(booking),
     });
   } catch (err) {
     next(err);

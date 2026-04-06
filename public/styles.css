@@ -885,6 +885,63 @@ textarea {
     margin: 0;
 }
 
+.booking-confirmation {
+    gap: 1.75rem;
+}
+
+.booking-confirmation__header {
+    gap: 0.85rem;
+}
+
+.booking-confirmation__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.booking-confirmation__status {
+    display: inline-flex;
+    align-items: center;
+}
+
+.booking-confirmation__status--confirmed {
+    color: var(--accent);
+    background: rgba(31, 111, 67, 0.12);
+}
+
+.booking-confirmation__status--waitlisted {
+    color: #8a5b00;
+    background: rgba(186, 123, 0, 0.14);
+}
+
+.booking-confirmation__status--cancelled {
+    color: #7a1f1f;
+    background: rgba(122, 31, 31, 0.12);
+}
+
+.booking-confirmation__details {
+    padding: 1rem 1.25rem;
+    background: rgba(44, 62, 80, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+}
+
+.booking-confirmation__reference {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+}
+
+.booking-confirmation__note {
+    max-width: 38rem;
+    margin: 0;
+}
+
+.booking-confirmation__actions {
+    padding-top: 0.25rem;
+}
+
 .booking-summary-table td[data-label="Places left"] {
     font-weight: 600;
 }
@@ -937,5 +994,22 @@ textarea {
     .table-stack__caption {
         margin: 0;
         line-height: 1.4;
+    }
+
+    .booking-confirmation__heading {
+        align-items: flex-start;
+    }
+
+    .booking-confirmation__details {
+        padding: 1rem;
+    }
+
+    .booking-confirmation__actions > * {
+        width: 100%;
+    }
+
+    .booking-confirmation__actions .btn {
+        width: 100%;
+        text-align: center;
     }
 }

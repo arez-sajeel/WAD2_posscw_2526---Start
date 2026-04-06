@@ -2,18 +2,33 @@
 {{> head}}
 {{> header}}
 
-<div class="wrap">
-  <h1>Booking Confirmation</h1>
-  <p>Your booking has been created.</p>
+<article class="wrap course-detail booking-confirmation">
+  <header class="course-detail__header booking-confirmation__header">
+    <p class="eyebrow">{{booking.eyebrow}}</p>
+    <div class="booking-confirmation__heading">
+      <h1>Booking Confirmation</h1>
+      <p class="status-pill booking-confirmation__status {{booking.statusClass}}">{{booking.statusLabel}}</p>
+    </div>
+    <p class="course-description">{{booking.message}}</p>
+  </header>
 
-  <dl class="kv">
-    <dt>ID</dt><dd>{{booking.id}}</dd>
-    <dt>Type</dt><dd>{{booking.type}}</dd>
-    <dt>Status</dt><dd>{{booking.status}}</dd>
-    <dt>Created</dt><dd>{{booking.createdAt}}</dd>
-  </dl>
+  <section class="course-section" aria-labelledby="booking-details-heading">
+    <h2 id="booking-details-heading">Booking details</h2>
+    <dl class="kv booking-confirmation__details">
+      <dt>Reference</dt><dd class="booking-confirmation__reference">{{booking.id}}</dd>
+      <dt>Type</dt><dd>{{booking.typeLabel}}</dd>
+      <dt>Status</dt><dd>{{booking.statusLabel}}</dd>
+      <dt>Created</dt><dd>{{booking.createdAt}}</dd>
+    </dl>
+  </section>
 
-  <p><a class="btn" href="/courses">Back to courses</a></p>
-</div>
+  <section class="course-section" aria-labelledby="booking-next-steps-heading">
+    <h2 id="booking-next-steps-heading">Next steps</h2>
+    <p class="muted booking-confirmation__note">{{booking.nextStep}}</p>
+    <div class="actions booking-confirmation__actions">
+      <a class="btn primary" href="/courses">Back to courses</a>
+    </div>
+  </section>
+</article>
 
 {{> footer}}
